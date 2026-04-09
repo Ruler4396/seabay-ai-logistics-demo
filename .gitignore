@@ -1,6 +1,8 @@
 node_modules/
 dist/
 *.tsbuildinfo
+__pycache__/
+*.pyc
 
 server/demo_records.db
 server/*.db.bak.*
