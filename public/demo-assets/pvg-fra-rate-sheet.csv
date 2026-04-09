@@ -1,0 +1,4 @@
+lane,mode,container,service_tier,base_usd,doc,ams,fuel,customs,delivery,handling
+PVG-FRA,Air Freight,Chargeable Weight 1280 KG,Economy,4055,45,0,205,140,360,88
+PVG-FRA,Air Freight,Chargeable Weight 1280 KG,Standard,4360,45,0,220,140,360,88
+PVG-FRA,Air Freight,Chargeable Weight 1280 KG,Priority,4883,45,0,246,140,360,88

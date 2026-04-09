@@ -1,0 +1,4 @@
+lane,origin_label,destination_label,mode,container,service_tier,carrier,transit_days,validity,base_usd,doc,ams,fuel,customs,delivery,handling,remarks
+USWC-FCL,Yantian Shenzhen China,Los Angeles USA,Ocean Freight FCL,40HQ,Economy,BlueWave Consolidation,22,2026-04-15,2166,65,35,171,120,420,95,Lower cost option for routine replenishment
+USWC-FCL,Yantian Shenzhen China,Los Angeles USA,Ocean Freight FCL,40HQ,Standard,Pacific Bridge Line,18,2026-04-15,2280,65,35,180,120,420,95,Balanced sailing window and rate
+USWC-FCL,Yantian Shenzhen China,Los Angeles USA,Ocean Freight FCL,40HQ,Priority,Westbound Express Service,15,2026-04-15,2599,65,35,205,120,420,95,Priority loading for urgent restock

@@ -1,0 +1,4 @@
+lane,origin_label,destination_label,mode,container,service_tier,carrier,transit_days,validity,base_usd,doc,ams,fuel,customs,delivery,handling,remarks
+EU-AIR,Shanghai PVG China,Frankfurt Germany,Air Freight,Chargeable Weight 1280 KG,Economy,Air Consolidation Service,6,2026-04-15,4055,45,0,205,140,360,88,Cost-sensitive replenishment by consolidation
+EU-AIR,Shanghai PVG China,Frankfurt Germany,Air Freight,Chargeable Weight 1280 KG,Standard,Main Deck Priority,4,2026-04-15,4360,45,0,220,140,360,88,Default option with stable uplift and customs handling
+EU-AIR,Shanghai PVG China,Frankfurt Germany,Air Freight,Chargeable Weight 1280 KG,Priority,Express Air Direct,3,2026-04-15,4883,45,0,246,140,360,88,Direct priority routing for urgent spare parts

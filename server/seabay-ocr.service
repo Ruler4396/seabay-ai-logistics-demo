@@ -1,0 +1,16 @@
+[Unit]
+Description=Seabay OCR Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/dev/seabay-ai-logistics-demo
+Environment=PYTHONUNBUFFERED=1
+Environment=LANG=C.UTF-8
+ExecStart=/usr/bin/python3 /root/dev/seabay-ai-logistics-demo/server/ocr_service.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

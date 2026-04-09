@@ -1,0 +1,4 @@
+lane,mode,container,service_tier,base_usd,doc,ams,fuel,customs,delivery,handling
+YTN-LAX,Ocean Freight FCL,40HQ,Economy,2166,65,35,171,120,420,95
+YTN-LAX,Ocean Freight FCL,40HQ,Standard,2280,65,35,180,120,420,95
+YTN-LAX,Ocean Freight FCL,40HQ,Priority,2599,65,35,205,120,420,95
