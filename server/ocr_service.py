@@ -26,6 +26,7 @@ ROOT = Path("/root/dev/seabay-ai-logistics-demo")
 DB_PATH = ROOT / "server" / "demo_records.db"
 WECOM_ENV_PATH = Path("/etc/wecom-zeroclaw-bridge.env")
 RFQ_INBOX_PATH = Path("/var/lib/wecom-zeroclaw/rfq_demo_inbox.jsonl")
+RFQ_SESSION_PATH = Path("/var/lib/wecom-zeroclaw/rfq_live_sessions.json")
 MAX_PREVIEW_WIDTH = 1080
 OCR_LANG = "eng+chi_sim"
 WECOM_TOKEN_CACHE: dict[str, Any] = {"value": "", "expires_at": datetime.min}
@@ -342,6 +343,9 @@ def parse_rfq_reply(content: str) -> dict[str, Any]:
     compact = re.sub(r"\s+", " ", content).strip()
     total_match = re.search(r"(?:usd|all in|all-in)[^\d]*([0-9][0-9,]*(?:\.\d+)?)", compact, re.I)
     transit_match = re.search(r"(?:transit|tt|时效)[^\d]{0,6}(\d{1,2})\s*(?:d|day|days|天)", compact, re.I)
+    if not transit_match:
+        tail = compact[total_match.end() :] if total_match else compact
+        transit_match = re.search(r"(\d{1,2})\s*(?:d|day|days|天)", tail, re.I)
     free_days_match = re.search(r"(?:free(?:\s*days?)?|免(?:柜|堆)?期)[^\d]{0,6}(\d{1,2})\s*(?:d|day|days|天)?", compact, re.I)
     validity_match = re.search(r"(valid(?:ity)?(?: till)?\s*[^/]+|有效期[:：]?\s*[^/]+)", compact, re.I)
     parsed = {
@@ -368,6 +372,42 @@ def read_rfq_inbox_entries() -> list[dict[str, Any]]:
         if isinstance(payload, dict):
             entries.append(payload)
     return entries
+
+
+def read_rfq_live_sessions() -> list[dict[str, Any]]:
+    if not RFQ_SESSION_PATH.exists():
+        return []
+    try:
+        payload = json.loads(RFQ_SESSION_PATH.read_text())
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(payload, list):
+        return []
+    return [item for item in payload if isinstance(item, dict)]
+
+
+def write_rfq_live_sessions(sessions: list[dict[str, Any]]) -> None:
+    RFQ_SESSION_PATH.parent.mkdir(parents=True, exist_ok=True)
+    RFQ_SESSION_PATH.write_text(json.dumps(sessions, ensure_ascii=False, indent=2))
+
+
+def upsert_rfq_live_session(*, task_id: str, target_user: str, scenario_id: str) -> None:
+    sessions = [
+        item
+        for item in read_rfq_live_sessions()
+        if str(item.get("userId") or "").strip() != target_user
+    ]
+    sessions.append(
+        {
+            "taskId": task_id,
+            "userId": target_user,
+            "scenarioId": scenario_id,
+            "status": "awaiting_price_reply",
+            "createdAt": now_cst(),
+            "invalidAttempts": 0,
+        }
+    )
+    write_rfq_live_sessions(sessions)
 
 
 def sync_rfq_reply_from_inbox(task_id: str) -> dict[str, Any] | None:
@@ -1391,6 +1431,7 @@ def rfq_live_send():
         outbound_message=outbound_message,
         status="sent",
     )
+    upsert_rfq_live_session(task_id=task_id, target_user=target_user, scenario_id=scenario_id)
     return jsonify(
         {
             "ok": True,

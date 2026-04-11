@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useDemo } from "../context/DemoContext";
-import { RecentRecordsBar } from "./RecentRecordsBar";
 import { tx } from "../utils/i18n";
 
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
@@ -125,7 +124,6 @@ export function Layout() {
 
         <main className="workspace-content">
           <Outlet />
-          <RecentRecordsBar />
         </main>
       </div>
     </div>

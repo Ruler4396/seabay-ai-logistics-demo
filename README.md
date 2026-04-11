@@ -1,54 +1,113 @@
 # Seabay AI Logistics Demo
 
-这是一个为国际物流 AI 自动化岗位准备的面试展示项目。
+为 `Seabay 国际物流 AI 自动化岗位` 定制的移动端优先 demo。
 
-目标不是复刻企业官网，而是做一个更像“下一代官网 + AI 业务工作台”的 demo，让 HR 和业务负责人一眼看到你对以下三件事都有理解：
+项目目标不是重做企业官网，而是把岗位职责直接做成一个可演示的内部工作台：
 
-- 国际物流业务流程
-- AI 自动化落地场景
-- Web 产品表达与前端实现能力
+- `智能录单`：上传或拍照导入单据，调用 OCR，抽取字段，生成订单草稿，并给出关键字段风险告警
+- `智能报价`：导入价格表，生成多档报价方案，再进入方案详情与询价核价
+- `智能询价`：导入联系人表，向企业微信发送询价消息，接收手机回复并解析回显
 
-## 建议定位
+线上地址：
 
-把它做成一个面向海外 B 端客户与内部业务团队的双层展示站：
+- `https://aqsk.top/seabay-ai-logistics-demo/`
 
-- 对外层：体现公司主营业务、全球覆盖、IT 能力、智能化升级方向
-- 对内层：演示 3 个 AI 自动化场景
+## 当前状态
 
-## 最值得做成 Demo 的 3 个场景
+- 前端：`Vite + React + TypeScript + React Router`
+- 后端：轻量 Flask 服务，负责 OCR、记录、RFQ live API
+- 企业微信：已接通询价发送与回信解析链路
+- 设计方向：`移动端友好 / 内部控制台 / 演示步骤尽量少`
 
-1. AI 自动录单
-上传提单、箱单、发票等文件，自动识别字段，生成订单草稿并标出异常项。
+## 页面结构
 
-2. 智能报价系统
-输入起运港、目的港、货量、时效要求，自动匹配价格表并生成报价建议，可输出英文版本。
+- `/intake`
+  - 两按钮入口：拍照录单、导入图片/PDF
+  - OCR 结果弹窗
+  - 关键字段风险与订单草稿
+- `/quote`
+  - 导入价格表
+  - 生成报价
+  - 第一层弹窗：方案选择
+  - 第二层弹窗：方案详情并转入询价核价
+- `/procurement`
+  - 导入联系人表
+  - 发送企业微信询价
+  - 询价控制台展示发送内容、手机回复原文、解析结果
 
-3. 供应商询价机器人
-模拟向多个供应商批量询价，回收结果后做标准化比价和推荐。
+## 本地运行
 
-## 建议页面结构
+```bash
+cd /root/dev/seabay-ai-logistics-demo
+pnpm install
+pnpm dev
+```
 
-1. Hero 首屏
-一句话强调“国际物流 + AI 自动化 + 海外 B 端服务”。
+生产构建：
 
-2. 公司能力区
-展示海运、空运、铁路、快递及其官网工具能力。
+```bash
+pnpm build
+```
 
-3. AI Demo 区
-直接提供 3 个可点击的互动 demo 卡片。
+## 目录说明
 
-4. 数据与流程区
-展示单证处理、报价生成、询价回收的流程编排能力。
+- `src/pages`
+  - 3 个主页面：录单、报价、询价
+- `src/context/DemoContext.tsx`
+  - 页面共享状态、导入动作、报价与询价主流程
+- `server/ocr_service.py`
+  - OCR API、导入记录、RFQ live API
+- `public/demo-assets`
+  - 演示用 PDF、价格表、联系人表
+- `generated-docs`
+  - 额外生成的 demo 单据
 
-5. 面试加分区
-说明你对 OCR、RPA、Prompt、API、英文官网接口的理解。
+## 演示资源
 
-## 当前目录用途
+可直接导入的样例文件在 `public/demo-assets`：
 
-- `README.md`：项目定位与结构
-- `PROJECT_BRIEF.md`：企业/岗位提炼与 demo 方向建议
+- 单据
+  - `commercial-invoice-pacific-home-supplies.pdf`
+  - `packing-list-pacific-home-supplies.pdf`
+  - `draft-bill-of-lading-pacific-home-supplies.pdf`
+  - `commercial-invoice-key-fields-occluded.pdf`
+- 价格表
+  - `ocean-fcl-uswc-rate-sheet-apr-2026.csv`
+  - `air-eu-westbound-rate-sheet-apr-2026.csv`
+- 联系人表
+  - `uswc-rfq-contact-book-apr-2026.csv`
+  - `eu-air-rfq-contact-book-apr-2026.csv`
 
-下一步可以直接进入两条路线中的一条：
+## 演示建议流程
 
-- 路线 A：先把信息架构和视觉风格定下来，再开始做前端页面
-- 路线 B：先用假数据快速做出 3 个可交互 demo，再补官网包装层
+1. 在 `录单` 上传或拍照导入单据，展示 OCR 和风险告警
+2. 跳到 `报价`，生成报价并选择一个方案
+3. 查看方案详情，点击 `转入询价核价`
+4. 在 `询价` 导入联系人表并发送企业微信询价
+5. 用手机回复价格，展示回信解析结果
+
+## 已实现的真实能力
+
+- 企业微信询价消息真实发送
+- 手机端回复真实回流
+- 报价格式最小解析：
+  - `USD`
+  - `时效`
+  - `free days`
+  - `validity`
+- OCR 风险分层：
+  - OCR 质量问题
+  - 关键字段业务风险
+
+## 当前边界
+
+- 这是面试 demo，不是生产系统
+- OCR 适合清晰 PDF 和较清晰拍照件
+- 报价与联系人仍以本地 demo 数据为主
+- 企业微信回复模式支持隐藏退出，但页面和文案不主动展示
+- ZeroClaw 的真实下游 Agent 调用未接入本仓库，只保留了工作流位置
+
+## 相关说明
+
+- 项目仓库：`https://github.com/Ruler4396/seabay-ai-logistics-demo`
+- `v1` 冻结包与版本说明已保留在本机发布目录

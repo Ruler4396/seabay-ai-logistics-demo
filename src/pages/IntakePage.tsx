@@ -136,7 +136,7 @@ function severityIcon(severity: Severity) {
     return "!";
   }
   if (severity === "warning") {
-    return "▲";
+    return "!";
   }
   return "·";
 }
@@ -364,6 +364,20 @@ export function IntakePage() {
               </div>
             )}
 
+            {secondaryIssues.length > 0 && (
+              <div className="issue-list">
+                {secondaryIssues.map((issue, index) => (
+                  <div key={`${issue.field}-${issue.reasonCode}-${index}`} className={`alert alert--${issue.severity}`}>
+                    <span className="alert__icon" aria-hidden="true">{severityIcon(issue.severity)}</span>
+                    <div className="alert__content">
+                      <strong>{describeAlert(issue, locale).message}</strong>
+                      <span>{describeAlert(issue, locale).detail}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="field-grid">
               <div className="field-card">
                 <span>{tx(locale, "客户 / 发货人", "Customer / Shipper")}</span>
@@ -425,20 +439,6 @@ export function IntakePage() {
                 </tbody>
               </table>
             </div>
-
-            {secondaryIssues.length > 0 && (
-              <div className="issue-list">
-                {secondaryIssues.map((issue, index) => (
-                  <div key={`${issue.field}-${issue.reasonCode}-${index}`} className={`alert alert--${issue.severity}`}>
-                    <span className="alert__icon" aria-hidden="true">{severityIcon(issue.severity)}</span>
-                    <div className="alert__content">
-                      <strong>{describeAlert(issue, locale).message}</strong>
-                      <span>{describeAlert(issue, locale).detail}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div className="button-row">
               <button className="button" onClick={() => setOcrModalOpen(true)}>

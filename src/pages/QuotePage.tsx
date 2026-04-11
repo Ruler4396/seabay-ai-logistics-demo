@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDemo } from "../context/DemoContext";
 import { formatUsd } from "../utils/demoEngine";
@@ -62,12 +62,21 @@ export function QuotePage() {
     loadSamplePriceSheet,
     ingestPriceSheet,
   } = useDemo();
+  const [isOptionsModalOpen, setOptionsModalOpen] = useState(false);
+  const [isDetailModalOpen, setDetailModalOpen] = useState(false);
 
   useEffect(() => {
     if (!uploadedPriceSheet) {
       loadSamplePriceSheet();
     }
   }, [uploadedPriceSheet, loadSamplePriceSheet]);
+
+  useEffect(() => {
+    if (quoteOptions.length) {
+      setOptionsModalOpen(true);
+      setDetailModalOpen(false);
+    }
+  }, [quoteOptions.length]);
 
   const requestRows = [
     {
@@ -110,7 +119,7 @@ export function QuotePage() {
 
   return (
     <div className="stack-lg">
-      <section className="panel stack-md quote-portal-shell">
+      <section className="panel stack-md quote-portal-shell quote-page-shell">
         <div className="quote-portal-header">
           <h3>{tx(locale, "AI 智能报价", "AI Quote")}</h3>
           <label className="button button--ghost quote-source-button">
@@ -133,13 +142,10 @@ export function QuotePage() {
           <section className="quote-source-strip quote-source-strip--compact">
             <div className="info-chip">{uploadedPriceSheet.fileName}</div>
             <div className="info-chip">{uploadedPriceSheet.updatedAt}</div>
-            <div className="info-chip">
-              {uploadedPriceSheet.rows.length} {tx(locale, "条价格规则", "pricing rules")}
-            </div>
           </section>
         ) : null}
 
-        <article className="quote-request-card quote-request-card--flat">
+        <article className="quote-request-card quote-request-card--flat quote-request-card--compact">
           {requestRows.map((row) => (
             <label key={row.labelZh} className="quote-request-row">
               <span>{tx(locale, row.labelZh, row.labelEn)}</span>
@@ -176,77 +182,127 @@ export function QuotePage() {
             <button className="button quote-primary-action" onClick={generateQuotes} disabled={!uploadedPriceSheet?.rows.length}>
               {tx(locale, "生成报价", "Generate Quote")}
             </button>
+            {quoteOptions.length ? (
+              <button className="button button--secondary" onClick={() => setOptionsModalOpen(true)}>
+                {tx(locale, "查看方案", "View Options")}
+              </button>
+            ) : null}
           </div>
         </article>
       </section>
 
-      <section className="panel stack-md">
-        <div className="panel__header">
-          <h3>{tx(locale, "报价方案", "Quote Options")}</h3>
-        </div>
+      {isOptionsModalOpen ? (
+        <>
+          <button className="sidebar-backdrop modal-backdrop" onClick={() => setOptionsModalOpen(false)} />
+          <section className="workspace-modal workspace-modal--quote panel">
+            <div className="workspace-modal__header">
+              <div>
+                <h3>{tx(locale, "报价方案", "Quote Options")}</h3>
+                <p className="muted">{tx(locale, "先选择一个报价方案。", "Choose one quote option first.")}</p>
+              </div>
+              <button className="modal-close-button" aria-label={tx(locale, "关闭", "Close")} onClick={() => setOptionsModalOpen(false)}>
+                ×
+              </button>
+            </div>
 
-        {quoteOptions.length ? (
-          <div className="quote-portal-results">
-            {quoteOptions.map((option) => (
-              <article
-                key={option.id}
-                className={selectedQuote?.id === option.id ? "quote-portal-card is-selected" : "quote-portal-card"}
-              >
-                <div className="quote-portal-card__top">
-                  <div>
-                    <span className="quote-badge">{badgeLabel(locale, option.badge)}</span>
-                    <h3>{locale === "zh" ? option.label : option.labelEn}</h3>
-                  </div>
-                  <div className="quote-price">USD {formatUsd(option.totalUsd)}</div>
-                </div>
+            {quoteOptions.length ? (
+              <div className="workspace-modal__body workspace-modal__body--quote-picker">
+                <div className="workspace-modal__scroll quote-options-stack">
+                  {quoteOptions.map((option) => (
+                    <article
+                      key={option.id}
+                      className={selectedQuote?.id === option.id ? "quote-portal-card is-selected quote-option-card" : "quote-portal-card quote-option-card"}
+                    >
+                      <div className="quote-portal-card__top">
+                        <div>
+                          <span className="quote-badge">{badgeLabel(locale, option.badge)}</span>
+                          <h3>{locale === "zh" ? option.label : option.labelEn}</h3>
+                        </div>
+                        <div className="quote-price">USD {formatUsd(option.totalUsd)}</div>
+                      </div>
 
-                <div className="quote-inline-status">
-                  <div className="info-chip">{option.carrier}</div>
-                  <div className="info-chip">{option.transitDays} {tx(locale, "天", "days")}</div>
-                </div>
+                      <div className="quote-inline-status">
+                        <div className="info-chip">{option.carrier}</div>
+                        <div className="info-chip">{option.transitDays} {tx(locale, "天", "days")}</div>
+                      </div>
 
-                <div className="charge-list quote-charge-list--compact">
-                  {option.breakdown.map((charge) => (
-                    <div key={charge.label}>
-                      <span>{chargeLabel(locale, charge.label)}</span>
-                      <strong>USD {formatUsd(charge.amountUsd)}</strong>
-                    </div>
+                      <div className="button-row">
+                        <button
+                          className="button quote-primary-action"
+                          onClick={() => {
+                            chooseQuote(option.id);
+                            setOptionsModalOpen(false);
+                            setDetailModalOpen(true);
+                          }}
+                        >
+                          {tx(locale, "查看方案信息", "Open details")}
+                        </button>
+                      </div>
+                    </article>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="empty-state workspace-modal__empty">
+                <h3>{tx(locale, "等待报价", "Waiting")}</h3>
+              </div>
+            )}
+          </section>
+        </>
+      ) : null}
 
-                <div className="button-row">
-                  <button className="button button--secondary" onClick={() => chooseQuote(option.id)}>
-                    {selectedQuote?.id === option.id
-                      ? tx(locale, "当前方案", "Selected")
-                      : tx(locale, "选用", "Use")}
-                  </button>
+      {isDetailModalOpen && selectedQuote ? (
+        <>
+          <button className="sidebar-backdrop modal-backdrop" onClick={() => setDetailModalOpen(false)} />
+          <section className="workspace-modal workspace-modal--quote-detail panel">
+            <div className="workspace-modal__header">
+              <div>
+                <h3>{tx(locale, "方案信息", "Quote details")}</h3>
+                <p className="muted">{tx(locale, "确认方案信息后转入询价核价。", "Review the details, then continue to RFQ.")}</p>
+              </div>
+              <button className="modal-close-button" aria-label={tx(locale, "关闭", "Close")} onClick={() => setDetailModalOpen(false)}>
+                ×
+              </button>
+            </div>
+
+            <div className="workspace-modal__body workspace-modal__body--quote-detail">
+              <div className="quote-english-card quote-english-card--compact">
+                <span className="quote-badge">{badgeLabel(locale, selectedQuote.badge)}</span>
+                <strong>{locale === "zh" ? selectedQuote.label : selectedQuote.labelEn}</strong>
+                <div className="quote-inline-status">
+                  <div className="info-chip">{selectedQuote.carrier}</div>
+                  <div className="info-chip">USD {formatUsd(selectedQuote.totalUsd)}</div>
+                  <div className="info-chip">{selectedQuote.transitDays} {tx(locale, "天", "days")}</div>
                 </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <h3>{tx(locale, "等待报价", "Waiting")}</h3>
-          </div>
-        )}
-      </section>
+                <p>{selectedQuote.summaryEn}</p>
+              </div>
 
-      {selectedQuote ? (
-        <section className="panel stack-md">
-          <div className="panel__header">
-            <h3>{tx(locale, "英文报价输出", "English Quote Output")}</h3>
-          </div>
+              <div className="charge-list quote-charge-list--compact">
+                {selectedQuote.breakdown.map((charge) => (
+                  <div key={charge.label}>
+                    <span>{chargeLabel(locale, charge.label)}</span>
+                    <strong>USD {formatUsd(charge.amountUsd)}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <article className="quote-english-card">
-            <p>{selectedQuote.summaryEn}</p>
-          </article>
-
-          <div className="button-row">
-            <button className="button" onClick={() => navigate("/procurement")}>
-              {tx(locale, "转入询价核价", "Continue to RFQ")}
-            </button>
-          </div>
-        </section>
+            <div className="workspace-modal__footer quote-modal__footer">
+              <button
+                className="button button--secondary"
+                onClick={() => {
+                  setDetailModalOpen(false);
+                  setOptionsModalOpen(true);
+                }}
+              >
+                {tx(locale, "返回方案选择", "Back to options")}
+              </button>
+              <button className="button quote-primary-action" onClick={() => navigate("/procurement")}>
+                {tx(locale, "转入询价核价", "Continue to RFQ")}
+              </button>
+            </div>
+          </section>
+        </>
       ) : null}
     </div>
   );
